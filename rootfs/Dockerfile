@@ -5,7 +5,7 @@ FROM alpine:3.8 as ckanbuild
 
 # Set CKAN version to build
 ENV GIT_URL=https://github.com/ckan/ckan.git
-ENV GIT_BRANCH=ckan-2.8.2
+ENV GIT_BRANCH=ckan-2.8.4
 
 # Set src dirs
 ENV SRC_DIR=/srv/app/src
@@ -26,6 +26,7 @@ RUN apk add --no-cache \
         autoconf \
         automake \
         libtool \
+        libffi-dev \
         musl-dev \
         pcre-dev \
         pcre \

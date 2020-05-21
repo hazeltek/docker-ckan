@@ -1,6 +1,6 @@
 VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo latest)
-DOCKERHUB_NAMESPACE ?= keitaro
-IMAGE := ${DOCKERHUB_NAMESPACE}/ckan:${VERSION}
+DOCKERHUB_NAMESPACE ?= ehealthafrica
+IMAGE := ${DOCKERHUB_NAMESPACE}/ckan:${VERSION}-alpine
 
 build:
 	docker build -t ${IMAGE} rootfs
