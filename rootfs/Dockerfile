@@ -1,7 +1,7 @@
 ##################
 ### Build CKAN ###
 ##################
-FROM alpine:3.8 as ckanbuild
+FROM alpine:3.11 as ckanbuild
 
 # Set CKAN version to build
 ENV GIT_URL=https://github.com/ckan/ckan.git
@@ -48,7 +48,7 @@ RUN pip wheel --wheel-dir=/wheels uwsgi gevent
 ############
 ### MAIN ###
 ############
-FROM alpine:3.8
+FROM alpine:3.11
 
 MAINTAINER Keitaro Inc <info@keitaro.com>
 

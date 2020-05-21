@@ -5,5 +5,8 @@ IMAGE := ${DOCKERHUB_NAMESPACE}/ckan:${VERSION}-alpine
 build:
 	docker build -t ${IMAGE} rootfs
 
+build-no-cache:
+	docker build --no-cache -t ${IMAGE} rootfs
+
 push: build
 	docker push ${IMAGE}
