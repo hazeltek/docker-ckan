@@ -13,12 +13,12 @@ RETRY = 5
 
 def check_db_connection(retry=None):
 
-    print '[prerun] Start check_db_connection...'
+    print('[prerun] Start check_db_connection...')
 
     if retry is None:
         retry = RETRY
     elif retry == 0:
-        print '[prerun] Giving up after 5 tries...'
+        print('[prerun] Giving up after 5 tries...')
         sys.exit(1)
 
     conn_str = os.environ.get('CKAN_SQLALCHEMY_URL', '')
@@ -26,8 +26,8 @@ def check_db_connection(retry=None):
         connection = psycopg2.connect(conn_str)
 
     except psycopg2.Error as e:
-        print str(e)
-        print '[prerun] Unable to connect to the database...try again in a while.'
+        print((str(e)))
+        print('[prerun] Unable to connect to the database...try again in a while.')
         import time
         time.sleep(10)
         check_db_connection(retry = retry - 1)
@@ -37,12 +37,12 @@ def check_db_connection(retry=None):
 
 def check_solr_connection(retry=None):
 
-    print '[prerun] Start check_solr_connection...'
+    print('[prerun] Start check_solr_connection...')
 
     if retry is None:
         retry = RETRY
     elif retry == 0:
-        print '[prerun] Giving up after 5 tries...'
+        print('[prerun] Giving up after 5 tries...')
         sys.exit(1)
 
     url = os.environ.get('CKAN_SOLR_URL', '')
@@ -51,8 +51,8 @@ def check_solr_connection(retry=None):
     try:
         connection = urllib2.urlopen(search_url)
     except urllib2.URLError as e:
-        print str(e)
-        print '[prerun] Unable to connect to solr...try again in a while.'
+        print((str(e)))
+        print('[prerun] Unable to connect to solr...try again in a while.')
         import time
         time.sleep(10)
         check_solr_connection(retry = retry - 1)
@@ -65,34 +65,34 @@ def check_solr_connection(retry=None):
 
 def init_db():
 
-    print '[prerun] Start init_db...'
+    print('[prerun] Start init_db...')
 
     db_command = ['paster', '--plugin=ckan', 'db', 'init', '-c', ckan_ini]
 
-    print '[prerun] Initializing or upgrading db - start using paster db init'
+    print('[prerun] Initializing or upgrading db - start using paster db init')
     try:
         # run init scripts
         subprocess.check_output(db_command, stderr=subprocess.STDOUT)
 
-        print '[prerun] Initializing or upgrading db - end'
-    except subprocess.CalledProcessError, e:
+        print('[prerun] Initializing or upgrading db - end')
+    except subprocess.CalledProcessError as e:
         if 'OperationalError' in e.output:
-            print e.output
-            print '[prerun] Database not ready, waiting a bit before exit...'
+            print((e.output))
+            print('[prerun] Database not ready, waiting a bit before exit...')
             import time
             time.sleep(5)
             sys.exit(1)
         else:
-            print e.output
+            print((e.output))
             raise e
-    print '[prerun] Initializing or upgrading db - finish'
+    print('[prerun] Initializing or upgrading db - finish')
 
 
 def init_datastore():
 
     conn_str = os.environ.get('CKAN_DATASTORE_WRITE_URL')
     if not conn_str:
-        print '[prerun] Skipping datastore initialization'
+        print('[prerun] Skipping datastore initialization')
         return
 
     datastore_perms_command = ['paster', '--plugin=ckan', 'datastore',
@@ -101,7 +101,7 @@ def init_datastore():
     connection = psycopg2.connect(conn_str)
     cursor = connection.cursor()
 
-    print '[prerun] Initializing datastore db - start'
+    print('[prerun] Initializing datastore db - start')
     try:
         datastore_perms = subprocess.Popen(
             datastore_perms_command,
@@ -109,27 +109,27 @@ def init_datastore():
 
         perms_sql = datastore_perms.stdout.read()
         # Remove internal pg command as psycopg2 does not like it
-        perms_sql = re.sub('\\\\connect \"(.*)\"', '', perms_sql)
+        perms_sql = re.sub('\\\\connect \"(.*)\"', '', perms_sql.decode('utf-8'))
         cursor.execute(perms_sql)
         for notice in connection.notices:
-            print notice
+            print(notice)
 
         connection.commit()
 
-        print '[prerun] Initializing datastore db - end'
-        print datastore_perms.stdout.read()
+        print('[prerun] Initializing datastore db - end')
+        print((datastore_perms.stdout.read()))
     except psycopg2.Error as e:
-        print '[prerun] Could not initialize datastore'
-        print str(e)
+        print('[prerun] Could not initialize datastore')
+        print((str(e)))
 
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         if 'OperationalError' in e.output:
-            print e.output
-            print '[prerun] Database not ready, waiting a bit before exit...'
+            print((e.output))
+            print('[prerun] Database not ready, waiting a bit before exit...')
             time.sleep(5)
             sys.exit(1)
         else:
-            print e.output
+            print((e.output))
             raise e
     finally:
         cursor.close()
@@ -138,7 +138,7 @@ def init_datastore():
 
 def create_sysadmin():
 
-    print '[prerun] Start create_sysadmin...'
+    print('[prerun] Start create_sysadmin...')
 
     name = os.environ.get('CKAN_SYSADMIN_NAME')
     password = os.environ.get('CKAN_SYSADMIN_PASSWORD')
@@ -150,8 +150,8 @@ def create_sysadmin():
         command = ['paster', '--plugin=ckan', 'user', name, '-c', ckan_ini]
 
         out = subprocess.check_output(command)
-        if 'User:None' not in re.sub(r'\s', '', out):
-            print '[prerun] Sysadmin user exists, skipping creation'
+        if 'User:None' not in re.sub(r'\s', '', out.decode('utf-8')):
+            print('[prerun] Sysadmin user exists, skipping creation')
             return
 
         # Create user
@@ -162,7 +162,7 @@ def create_sysadmin():
                    '-c', ckan_ini]
 
         subprocess.call(command)
-        print '[prerun] Created user {0}'.format(name)
+        print(('[prerun] Created user {0}'.format(name)))
 
         # Make it sysadmin
         command = ['paster', '--plugin=ckan', 'sysadmin', 'add',
@@ -170,7 +170,7 @@ def create_sysadmin():
                    '-c', ckan_ini]
 
         subprocess.call(command)
-        print '[prerun] Made user {0} a sysadmin'.format(name)
+        print(('[prerun] Made user {0} a sysadmin'.format(name)))
 
 
 if __name__ == '__main__':
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     maintenance = os.environ.get('MAINTENANCE_MODE', '').lower() == 'true'
 
     if maintenance:
-        print '[prerun] Maintenance mode, skipping setup...'
+        print('[prerun] Maintenance mode, skipping setup...')
     else:
         check_db_connection()
         check_solr_connection()
