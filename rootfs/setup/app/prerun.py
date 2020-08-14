@@ -34,6 +34,7 @@ def check_db_connection(retry=None):
     else:
         connection.close()
 
+
 def check_solr_connection(retry=None):
 
     print '[prerun] Start check_solr_connection...'
@@ -60,6 +61,7 @@ def check_solr_connection(retry=None):
         conn_info = connection.read()
         conn_info = re.sub(r'"zkConnected":true', '"zkConnected":True', conn_info)
         eval(conn_info)
+
 
 def init_db():
 
@@ -169,6 +171,7 @@ def create_sysadmin():
 
         subprocess.call(command)
         print '[prerun] Made user {0} a sysadmin'.format(name)
+
 
 if __name__ == '__main__':
 
