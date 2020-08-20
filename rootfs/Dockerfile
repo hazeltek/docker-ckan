@@ -5,7 +5,7 @@ FROM alpine:3.12 as ckanbuild
 
 # Set CKAN version to build
 ENV GIT_URL=https://github.com/ckan/ckan.git
-ENV GIT_BRANCH=ckan-2.8.4
+ENV GIT_BRANCH=ckan-2.7.8
 
 # Set src dirs
 ENV SRC_DIR=/srv/app/src
@@ -18,7 +18,6 @@ RUN apk add --no-cache \
         git \
         curl \
         python2 \
-        postgresql-dev \
         linux-headers \
         gcc \
         make \
@@ -34,6 +33,12 @@ RUN apk add --no-cache \
         libffi-dev \
         libxml2-dev \
         libxslt-dev
+
+RUN apk add --update-cache \
+        # install older version of PostgreSQL
+        --repository=http://dl-cdn.alpinelinux.org/alpine/v3.4/main \
+        --allow-untrusted \
+        postgresql-dev==9.5.13-r0
 
 # Create the src directory
 RUN mkdir -p ${SRC_DIR}
@@ -91,7 +96,7 @@ RUN curl -o /wheels/s3filestore.txt https://raw.githubusercontent.com/okfn/ckane
 ############
 FROM alpine:3.12
 
-MAINTAINER Keitaro Inc <info@keitaro.com>
+LABEL MAINTAINER="Abdul-Hakeem Shaibu <s.abdulhakeeem@gmail.com>"
 
 ENV APP_DIR=/srv/app
 ENV SRC_DIR=/srv/app/src

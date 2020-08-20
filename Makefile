@@ -1,4 +1,4 @@
-VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo latest)
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo 2.7.8)
 DOCKERHUB_NAMESPACE ?= hazeltek
 IMAGE := ${DOCKERHUB_NAMESPACE}/ckan:${VERSION}-alpine
 
