@@ -14,16 +14,16 @@ function show_help {
     --help        | -h      show this message.
     --namespace             docker hub account name.
     --no-cache              build image without using cache.
-    --version     | -v      version number to tag with.
+    --tag         | -t      the image tag.
   """
 }
 
 function _build_image_name {
   local deb=$1
   local namespace=$2
-  local version=$3
+  local tag=$3
 
-  local image_name="${namespace}/ckan:${version}"
+  local image_name="${namespace}/ckan:${tag}"
   if [[ ${deb} = "no" ]]; then
     image_name="${image_name}-alpine"
   fi
@@ -85,7 +85,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
     ;;
 
-    -v | --version )
+    -t | --tag )
       shift
       version=$1
       shift
@@ -97,7 +97,7 @@ done
 _build_image_name ${deb} ${namespace} ${version}
 
 if [[ $dry_run = "yes" ]]; then
-  echo "deb=${deb} namespace=${namespace} version=${version}"
+  echo "deb=${deb} namespace=${namespace} tag=${version}"
   echo ${result}
 else
   build ${deb} ${result} ${nocache}
