@@ -8,7 +8,7 @@ ENV GIT_URL=https://github.com/ckan/ckan.git
 ENV GIT_BRANCH=ckan-2.7.8
 
 # Set src dirs
-ENV SRC_DIR=/srv/app/src
+ENV SRC_DIR=/usr/lib/ckan/default/src
 ENV PIP_SRC=${SRC_DIR}
 
 WORKDIR ${SRC_DIR}
@@ -49,7 +49,7 @@ RUN curl -o ${SRC_DIR}/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
 
 # Fetch and build CKAN and requirements
 RUN pip install -e git+${GIT_URL}@${GIT_BRANCH}#egg=ckan
-RUN rm -rf /srv/app/src/ckan/.git
+RUN rm -rf ${SRC_DIR}/ckan/.git
 RUN pip wheel --wheel-dir=/wheels -r ckan/requirements.txt
 RUN pip wheel --wheel-dir=/wheels uwsgi gevent
 
@@ -60,7 +60,7 @@ RUN pip wheel --wheel-dir=/wheels uwsgi gevent
 FROM alpine:3.12 as extbuild
 
 # Set src dirs
-ENV SRC_DIR=/srv/app/src
+ENV SRC_DIR=/usr/lib/ckan/default/src
 ENV PIP_SRC=${SRC_DIR}
 
 # List of default extensions
@@ -98,8 +98,8 @@ FROM alpine:3.12
 
 LABEL MAINTAINER="Abdul-Hakeem Shaibu <s.abdulhakeeem@gmail.com>"
 
-ENV APP_DIR=/srv/app
-ENV SRC_DIR=/srv/app/src
+ENV APP_DIR=/usr/lib/ckan/default
+ENV SRC_DIR=/usr/lib/ckan/default/src
 ENV PIP_SRC=${SRC_DIR}
 ENV CKAN_SITE_URL=http://localhost:5000
 ENV CKAN__PLUGINS envvars s3filestore image_view text_view recline_view datastore datapusher
@@ -127,25 +127,25 @@ RUN curl -o ${SRC_DIR}/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
     python ${SRC_DIR}/get-pip.py
 
 # Get artifacts from build stages
-COPY --from=ckanbuild /wheels /srv/app/wheels
-COPY --from=extbuild /wheels /srv/app/ext_wheels
-COPY --from=ckanbuild /srv/app/src/ckan /srv/app/src/ckan
+COPY --from=ckanbuild /wheels ${APP_DIR}/wheels
+COPY --from=extbuild /wheels ${APP_DIR}/ext_wheels
+COPY --from=ckanbuild ${SRC_DIR}/ckan ${SRC_DIR}/ckan
 
 # Additional install steps for build stages artifacts
-RUN pip install --no-index --find-links=/srv/app/wheels uwsgi gevent
+RUN pip install --no-index --find-links=${APP_DIR}/wheels uwsgi gevent
 
 # Create a local user and group to run the app
 RUN addgroup -g 92 -S ckan && \
-    adduser -u 92 -h /srv/app -H -D -S -G ckan ckan
+    adduser -u 92 -h ${APP_DIR} -H -D -S -G ckan ckan
 
 # Install CKAN
-RUN pip install -e /srv/app/src/ckan && \
+RUN pip install -e ${SRC_DIR}/ckan && \
     cd ${SRC_DIR}/ckan && \
     cp who.ini ${APP_DIR} && \
-    pip install --no-index --find-links=/srv/app/wheels -r requirements.txt && \
+    pip install --no-index --find-links=${APP_DIR}/wheels -r requirements.txt && \
     # Install default CKAN extensions
-    pip install --no-index --find-links=/srv/app/ext_wheels ckanext-envvars ckanext-s3filestore && \
-    pip install --no-index --find-links=/srv/app/ext_wheels -r /srv/app/ext_wheels/s3filestore.txt && \
+    pip install --no-index --find-links=${APP_DIR}/ext_wheels ckanext-envvars ckanext-s3filestore && \
+    pip install --no-index --find-links=${APP_DIR}/ext_wheels -r ${APP_DIR}/ext_wheels/s3filestore.txt && \
     # Create and update CKAN config
     # Set timezone
     echo "UTC" >  /etc/timezone && \
@@ -153,10 +153,10 @@ RUN pip install -e /srv/app/src/ckan && \
     paster --plugin=ckan make-config ckan ${APP_DIR}/production.ini && \
     paster --plugin=ckan config-tool ${APP_DIR}/production.ini "ckan.plugins = ${CKAN__PLUGINS}" && \
     # Change ownership to app user
-    chown -R ckan:ckan /srv/app
+    chown -R ckan:ckan ${APP_DIR}
 
 # Remove wheels
-RUN rm -rf /srv/app/wheels /srv/app/ext_wheels
+RUN rm -rf ${APP_DIR}/wheels ${APP_DIR}/ext_wheels
 
 # Copy necessary scripts
 COPY setup/app ${APP_DIR}
