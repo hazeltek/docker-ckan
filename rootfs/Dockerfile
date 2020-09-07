@@ -170,4 +170,4 @@ HEALTHCHECK --interval=10s --timeout=5s --retries=5 CMD curl --fail http://local
 
 USER ckan
 
-CMD ["/srv/app/start_ckan.sh"]
+CMD ["./start_ckan.sh"]
