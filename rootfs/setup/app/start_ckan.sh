@@ -35,12 +35,7 @@ then
     fi
   else
     # Start uwsgi
-    if [ "$CKAN___DEBUG" = true ] || [ "$CKAN___DEBUG" = True ]
-    then
-      ## to use uwsgi in debug mode uncomment next two lines and comment the paster command
-      # UWSGI_OPTS="$UWSGI_OPTS --py-autoreload 2"
-      # uwsgi $UWSGI_OPTS
-
+    if [ "$CKAN___DEBUG" = true ] || [ "$CKAN___DEBUG" = True ]; then
       paster serve /srv/app/production.ini --reload
     else
       uwsgi $UWSGI_OPTS
